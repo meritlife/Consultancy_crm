@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Admin Portal — Consulting Services</title>
+  <link rel="stylesheet" href="/css/shared.css">
+  <link rel="stylesheet" href="/css/dashboard.css">
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <a href="/" class="brand" style="text-decoration:none;color:inherit;">
+        <div class="brand-mark">CS</div>
+        <div>
+          <h1>Consulting Services</h1>
+          <p>Platform Administration</p>
+        </div>
+      </a>
+
+      <div class="employee-box">
+        <label>Signed in as</label>
+        <div class="session-active">
+          <div class="session-avatar" id="adminAvatar">SA</div>
+          <div class="session-info">
+            <div class="session-name" id="adminName">Super Admin</div>
+            <div class="session-role">Platform Owner</div>
+          </div>
+        </div>
+        <button class="btn ghost" id="logoutBtn" type="button" style="width:100%;margin-top:10px;">Sign Out</button>
+      </div>
+
+      <nav class="nav" id="adminNav" aria-label="Admin navigation">
+        <button class="active" type="button" data-nav="overview"><span>Overview</span><span>01</span></button>
+        <button type="button" data-nav="agencies"><span>Agencies</span><span>02</span></button>
+        <button type="button" data-nav="logs"><span>Audit Logs</span><span>03</span></button>
+      </nav>
+
+      <div class="theme-switch" aria-label="Theme" style="margin-top:auto;">
+        <button class="active" id="lightThemeBtn" type="button">Light</button>
+        <button id="darkThemeBtn" type="button">Dark</button>
+      </div>
+    </aside>
+
+    <main>
+      <div class="topbar">
+        <div>
+          <h2 id="topbarTitle">SaaS Platform Overview</h2>
+          <p id="topbarSubtitle">Global statistics and operational overview across all agencies.</p>
+        </div>
+        <div class="actions" id="topbarActions">
+          <button class="btn primary d-none" id="addAgencyBtn" type="button">Add Agency</button>
+        </div>
+      </div>
+
+      <!-- Overview section -->
+      <section id="overviewSection">
+        <section class="summary" aria-label="Platform summary">
+          <div class="metric"><span>Total Agencies</span><strong id="totalAgencies">0</strong></div>
+          <div class="metric"><span>Active Agencies</span><strong id="activeAgencies">0</strong></div>
+          <div class="metric"><span>Suspended</span><strong id="suspendedAgencies">0</strong></div>
+          <div class="metric"><span>Total Clients</span><strong id="totalClients">0</strong></div>
+          <div class="metric"><span>Total Employees</span><strong id="totalEmployees">0</strong></div>
+          <div class="metric"><span>Est. SaaS Revenue</span><strong id="saasRevenue">₹0</strong></div>
+          <div class="metric"><span>Logs Today</span><strong id="logsToday">0</strong></div>
+        </section>
+
+        <div class="panel" style="margin-bottom:18px;">
+          <div class="panel-head"><h3>All Agencies</h3></div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Agency Name</th>
+                  <th>Owner</th>
+                  <th>Status</th>
+                  <th>Employees</th>
+                  <th>Clients</th>
+                  <th>Created</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="overviewAgenciesTable"></tbody>
+            </table>
+          </div>
+          <div class="empty" id="overviewEmpty">No agencies found.</div>
+        </div>
+      </section>
+
+      <!-- Agencies management -->
+      <section class="panel d-none" id="agenciesSection">
+        <div class="panel-head">
+          <h3>Agencies &amp; Subscriptions</h3>
+          <button class="btn primary" id="addAgencyBtn2" type="button">Add New Agency</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Agency Name</th>
+                <th>Owner</th>
+                <th>Status</th>
+                <th>Employees</th>
+                <th>Clients</th>
+                <th>Created</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="agenciesTable"></tbody>
+          </table>
+        </div>
+        <div class="empty" id="agenciesEmpty">No agencies found.</div>
+      </section>
+
+      <!-- Audit Logs -->
+      <section class="panel d-none" id="logsSection">
+        <div class="panel-head">
+          <h3>Global Audit Logs</h3>
+          <div class="actions">
+            <select id="logActionFilter" style="padding:8px 12px;border-radius:6px;border:1px solid var(--line);background:var(--input);color:var(--ink);">
+              <option value="">All Actions</option>
+              <option value="CLIENT_CREATE">Client Created</option>
+              <option value="CLIENT_UPDATE">Client Updated</option>
+              <option value="CLIENT_DELETE">Client Deleted</option>
+              <option value="CLIENT_IMPORT">Bulk Upload</option>
+              <option value="CLIENT_EXPORT">Data Export</option>
+              <option value="USER_CREATE">Employee Added</option>
+              <option value="USER_DELETE">Employee Deleted</option>
+              <option value="AGENCY_CREATE">Agency Created</option>
+              <option value="AGENCY_STATUS">Agency Status Changed</option>
+            </select>
+            <button class="btn ghost" id="clearLogsBtn" type="button">Clear All Logs</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Timestamp</th>
+                <th>User</th>
+                <th>Agency</th>
+                <th>Action</th>
+                <th>Details</th>
+              </tr>
+            </thead>
+            <tbody id="logsTable"></tbody>
+          </table>
+        </div>
+        <div class="empty" id="logsEmpty">No audit logs found.</div>
+      </section>
+    </main>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <!-- Agency Modal -->
+  <div class="modal-backdrop" id="agencyModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3>Add New Agency</h3>
+        <button class="modal-close" type="button" id="closeAgencyModalBtn">×</button>
+      </div>
+      <form id="agencyForm">
+        <div class="modal-body">
+          <div class="form-grid">
+            <div class="field full">
+              <label for="newAgencyName">Agency Name</label>
+              <input id="newAgencyName" required placeholder="e.g. Apex Visa Consult">
+            </div>
+            <div class="field">
+              <label for="newOwnerName">Owner Name</label>
+              <input id="newOwnerName" required placeholder="Full Name">
+            </div>
+            <div class="field">
+              <label for="newOwnerEmail">Owner Email</label>
+              <input id="newOwnerEmail" type="email" required placeholder="owner@agency.com">
+            </div>
+            <div class="field full">
+              <label for="newOwnerPassword">Owner Password</label>
+              <input id="newOwnerPassword" type="password" required placeholder="Temporary password">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn ghost" type="button" id="cancelAgencyModalBtn">Cancel</button>
+          <button class="btn primary" type="submit">Create Agency</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/admin.js"></script>
+</body>
+</html>

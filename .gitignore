@@ -1,0 +1,21 @@
+# Dependencies
+node_modules/
+
+# Environment — never commit real secrets
+.env
+
+# SQLite database — regenerated via: node db/seed.js
+db/*.db
+db/*.db-shm
+db/*.db-wal
+
+# macOS
+.DS_Store
+
+# Logs
+*.log
+npm-debug.log*
+
+# Editor
+.vscode/
+.idea/

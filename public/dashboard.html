@@ -1,0 +1,552 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dashboard — Consulting Services</title>
+  <link rel="stylesheet" href="/css/shared.css">
+  <link rel="stylesheet" href="/css/dashboard.css">
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <a href="/" class="brand" style="text-decoration:none;color:inherit;">
+        <div class="brand-mark">CS</div>
+        <div>
+          <h1>Consulting Services</h1>
+          <p>Passport, visa, PAN and more</p>
+        </div>
+      </a>
+
+      <!-- Current user display -->
+      <div class="employee-box">
+        <label>Signed in as</label>
+        <div class="session-active">
+          <div class="session-avatar" id="sessionAvatar">?</div>
+          <div class="session-info">
+            <div class="session-name" id="sessionName">Loading...</div>
+            <div class="session-role" id="sessionRole"></div>
+          </div>
+        </div>
+        <button class="btn ghost" id="logoutBtn" type="button" style="width:100%;margin-top:10px;">Sign Out</button>
+      </div>
+
+      <!-- Dynamic navigation -->
+      <nav class="nav" id="sidebarNav" aria-label="Main navigation"></nav>
+
+      <div class="theme-switch" aria-label="Theme" style="margin-top:auto;">
+        <button class="active" id="lightThemeBtn" type="button">Light</button>
+        <button id="darkThemeBtn" type="button">Dark</button>
+      </div>
+    </aside>
+
+    <main>
+      <div class="topbar">
+        <div>
+          <h2 id="topbarTitle">Client Records Dashboard</h2>
+          <p id="topbarSubtitle">Maintain appointments, processing status, payments, rejections and lost clients.</p>
+        </div>
+        <div class="actions" id="topbarActions">
+          <button class="btn ghost d-none" id="bulkUploadBtn" type="button">Bulk Upload</button>
+          <button class="btn ghost d-none" id="exportBtn" type="button">Export</button>
+          <button class="btn primary d-none" id="newBtn" type="button">New Record</button>
+        </div>
+      </div>
+
+      <section class="visual-band d-none" id="dashboard" data-section="dashboard" aria-label="Dashboard quick actions">
+        <div>
+          <h3>Daily operations command center</h3>
+          <p>Click any summary, reminder, record, or quick action to move faster through client work.</p>
+          <div class="visual-quick">
+            <button class="chip" type="button" data-quick="appointments">Appointments</button>
+            <button class="chip" type="button" data-quick="processing">Processing</button>
+            <button class="chip" type="button" data-quick="payments">Payments due</button>
+            <button class="chip" type="button" data-quick="reminders">Expiry reminders</button>
+          </div>
+        </div>
+        <div class="visual-stack" aria-hidden="true">
+          <div class="doc-visual"></div>
+          <div class="passport-visual"></div>
+          <div class="payment-visual"></div>
+        </div>
+      </section>
+
+      <section class="summary d-none" aria-label="Record summary">
+        <button class="metric" type="button" data-filter="all"><span>Total records</span><strong id="totalCount">0</strong></button>
+        <button class="metric" type="button" data-filter="processing"><span>Processing</span><strong id="processingCount">0</strong></button>
+        <button class="metric" type="button" data-filter="completed"><span>Completed</span><strong id="completedCount">0</strong></button>
+        <button class="metric" type="button" data-filter="due"><span>Amount due</span><strong id="dueAmount">0</strong></button>
+        <button class="metric" type="button" data-filter="received"><span>Received</span><strong id="receivedAmount">0</strong></button>
+        <button class="metric" type="button" data-filter="birthdays"><span>Birthdays today</span><strong id="birthdayCount">0</strong></button>
+        <button class="metric" type="button" data-filter="renewals"><span>Passport reminders</span><strong id="renewalCount">0</strong></button>
+      </section>
+
+      <section class="insights d-none" aria-label="Today reminders">
+        <div class="panel" data-section="birthdays">
+          <div class="panel-head"><h3>Today's Birthdays</h3></div>
+          <div class="insight-list" id="birthdaysList"></div>
+        </div>
+        <div class="panel" data-section="renewals">
+          <div class="panel-head"><h3>Passport Expiry Reminders</h3></div>
+          <div class="insight-list" id="renewalsList"></div>
+        </div>
+      </section>
+
+      <!-- Outstanding Dues Panel -->
+      <section class="panel d-none" id="outstandingDuesSection" data-section="dues" style="margin-bottom:18px;">
+        <div class="panel-head">
+          <h3>Outstanding Dues</h3>
+          <span class="subtext" id="duesTotal"></span>
+        </div>
+        <div class="insight-list" id="duesList"></div>
+      </section>
+
+      <section class="workspace d-none">
+        <div class="panel" id="applications" data-section="applications">
+          <div class="panel-head">
+            <h3>Applications</h3>
+            <button class="btn ghost" id="seedBtn" type="button">Load Sample Data</button>
+          </div>
+          <div class="filters">
+            <div class="field">
+              <label for="search">Search</label>
+              <input id="search" type="search" placeholder="Client, phone, service, ID or referral">
+            </div>
+            <div class="field">
+              <label for="statusFilter">Status</label>
+              <select id="statusFilter">
+                <option value="">All status</option>
+                <option>Appointment</option>
+                <option>Processing</option>
+                <option>Completed</option>
+                <option>Rejected</option>
+                <option>Lost Client</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="paymentFilter">Payment</label>
+              <select id="paymentFilter">
+                <option value="">All payments</option>
+                <option>Pending</option>
+                <option>Partial Received</option>
+                <option>Received</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="employeeFilter">Owner</label>
+              <select id="employeeFilter">
+                <option value="">All employees</option>
+              </select>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Client</th>
+                  <th>Service</th>
+                  <th>Status</th>
+                  <th>Appointment</th>
+                  <th>Passport expiry</th>
+                  <th>Payment</th>
+                  <th>Referred by</th>
+                  <th>Owner</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="recordsTable"></tbody>
+            </table>
+          </div>
+          <div class="mobile-cards" id="mobileCards"></div>
+          <div class="empty" id="emptyState">No records match the current filters.</div>
+        </div>
+
+        <form class="panel" id="recordForm" data-section="payments">
+          <div class="panel-head">
+            <h3 id="formTitle">Add Record</h3>
+            <div style="display:flex;gap:8px;">
+              <button class="btn primary d-none" id="editBtn" type="button">Edit Record</button>
+              <button class="btn ghost" id="clearBtn" type="button">Clear</button>
+            </div>
+          </div>
+          <div class="form-body">
+            <input type="hidden" id="recordId">
+            <div class="form-grid">
+              <div class="field">
+                <label for="clientName">Client name</label>
+                <input id="clientName" required placeholder="Full name">
+              </div>
+              <div class="field">
+                <label for="phone">Phone</label>
+                <input id="phone" required placeholder="Mobile number">
+              </div>
+              <div class="field">
+                <label for="dob">Date of birth</label>
+                <input id="dob" type="date">
+              </div>
+              <div class="field">
+                <label for="referredBy">Referred by</label>
+                <input id="referredBy" placeholder="Justdial, agent name, walk-in">
+              </div>
+              <div class="field">
+                <label for="service">Service</label>
+                <select id="service" required>
+                  <option>Passport</option>
+                  <option>Visa</option>
+                  <option>PAN Card</option>
+                  <option>Aadhaar Update</option>
+                  <option>Travel Insurance</option>
+                  <option>Document Attestation</option>
+                  <option>Other Consulting</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="status">Status</label>
+                <select id="status" required>
+                  <option>Appointment</option>
+                  <option>Processing</option>
+                  <option>Completed</option>
+                  <option>Rejected</option>
+                  <option>Lost Client</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="appointmentDate">Appointment date</label>
+                <input id="appointmentDate" type="date">
+              </div>
+              <div class="field">
+                <label for="appointmentTime">Appointment time</label>
+                <input id="appointmentTime" type="time">
+              </div>
+              <div class="field full">
+                <label for="appointmentCenter">PSK / VFS / Service center</label>
+                <input id="appointmentCenter" placeholder="e.g. PSK Chennai, VFS Mumbai, Aadhaar Centre Coimbatore">
+              </div>
+              <div class="field">
+                <label for="passportExpiryDate">Passport expiry date</label>
+                <input id="passportExpiryDate" type="date">
+              </div>
+              <div class="field">
+                <label for="travelDate">Travel date (visa)</label>
+                <input id="travelDate" type="date">
+              </div>
+              <div class="field full">
+                <label for="stage">Processing stage</label>
+                <select id="stage">
+                  <option value="">— Not started —</option>
+                  <option>Documents Collected</option>
+                  <option>Application Submitted</option>
+                  <option>Under Verification</option>
+                  <option>Police Verification Pending</option>
+                  <option>Police Verification Done</option>
+                  <option>Approved / Visa Granted</option>
+                  <option>Dispatched</option>
+                  <option>Delivered / Ready for Pickup</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="assignedTo">Assigned to</label>
+                <select id="assignedTo"></select>
+              </div>
+              <div class="field">
+                <label for="amount">Agency fee (₹)</label>
+                <input id="amount" type="number" min="0" step="1" placeholder="0">
+              </div>
+              <div class="field">
+                <label for="received">Received (₹)</label>
+                <input id="received" type="number" min="0" step="1" placeholder="0">
+              </div>
+              <div class="field">
+                <label for="paymentStatus">Payment status</label>
+                <select id="paymentStatus">
+                  <option>Pending</option>
+                  <option>Partial Received</option>
+                  <option>Received</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="documentId">Reference ID</label>
+                <input id="documentId" placeholder="File, receipt or token ID">
+              </div>
+              <div class="field">
+                <label for="commissionAgent">Referral agent (commission)</label>
+                <input id="commissionAgent" placeholder="Agent name or N/A">
+              </div>
+              <div class="field">
+                <label for="commissionAmount">Commission amount (₹)</label>
+                <input id="commissionAmount" type="number" min="0" step="1" placeholder="0">
+              </div>
+              <div class="field">
+                <label for="commissionPaid">Commission paid?</label>
+                <select id="commissionPaid">
+                  <option value="0">No</option>
+                  <option value="1">Yes</option>
+                </select>
+              </div>
+              <div class="field full">
+                <label for="notes">Notes</label>
+                <textarea id="notes" placeholder="Documents pending, rejection reason, follow-up details"></textarea>
+              </div>
+            </div>
+            <button class="btn primary" type="submit" id="saveRecordBtn">Save Record</button>
+          </div>
+        </form>
+      </section>
+
+      <!-- Agencies Section (Super Admin) -->
+      <section class="panel d-none" id="agenciesSection" data-section="agencies">
+        <div class="panel-head">
+          <h3>Agencies &amp; Subscriptions</h3>
+          <button class="btn primary" id="addAgencyBtn" type="button">Add New Agency</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Agency Name</th>
+                <th>Owner Info</th>
+                <th>Status</th>
+                <th>Employees</th>
+                <th>Clients</th>
+                <th>Created Date</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="agenciesTable"></tbody>
+          </table>
+        </div>
+        <div class="empty" id="agenciesEmptyState">No agencies found.</div>
+      </section>
+
+      <!-- Employees Section (Agency Owner) -->
+      <section class="panel d-none" id="employeesSection" data-section="employees">
+        <div class="panel-head">
+          <h3>Agency Employee Directory</h3>
+          <button class="btn primary" id="addEmployeeBtn" type="button">Add Employee</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Status</th>
+                <th>Date Added</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="employeesTable"></tbody>
+          </table>
+        </div>
+        <div class="empty" id="employeesEmptyState">No employees found.</div>
+      </section>
+
+      <!-- Audit Logs Section -->
+      <section class="panel d-none" id="auditLogsSection" data-section="logs">
+        <div class="panel-head">
+          <h3>Audit History Logs</h3>
+          <div class="actions">
+            <select id="logActionFilter" style="padding:8px 12px;border-radius:6px;border:1px solid var(--line);background:var(--input);color:var(--ink);">
+              <option value="">All Actions</option>
+              <option value="CLIENT_CREATE">Client Created</option>
+              <option value="CLIENT_UPDATE">Client Updated</option>
+              <option value="CLIENT_DELETE">Client Deleted</option>
+              <option value="CLIENT_IMPORT">Bulk Upload</option>
+              <option value="CLIENT_EXPORT">Data Export</option>
+              <option value="USER_CREATE">Employee Added</option>
+              <option value="USER_DELETE">Employee Deleted</option>
+              <option value="AGENCY_CREATE">Agency Created</option>
+              <option value="AGENCY_STATUS">Agency Status Changed</option>
+            </select>
+            <button class="btn ghost" id="clearLogsBtn" type="button">Clear Logs</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Timestamp</th>
+                <th>User</th>
+                <th>Agency</th>
+                <th>Action</th>
+                <th>Details</th>
+              </tr>
+            </thead>
+            <tbody id="auditLogsTable"></tbody>
+          </table>
+        </div>
+        <div class="empty" id="auditLogsEmptyState">No audit logs found.</div>
+      </section>
+    </main>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <!-- Agency Modal -->
+  <div class="modal-backdrop" id="agencyModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3>Add New Agency</h3>
+        <button class="modal-close" type="button" id="closeAgencyModalBtn">×</button>
+      </div>
+      <form id="agencyForm">
+        <div class="modal-body">
+          <div class="form-grid">
+            <div class="field full">
+              <label for="newAgencyName">Agency Name</label>
+              <input id="newAgencyName" required placeholder="e.g. Apex Visa Consult">
+            </div>
+            <div class="field">
+              <label for="newOwnerName">Owner Name</label>
+              <input id="newOwnerName" required placeholder="Full Name">
+            </div>
+            <div class="field">
+              <label for="newOwnerEmail">Owner Email</label>
+              <input id="newOwnerEmail" type="email" required placeholder="owner@agency.com">
+            </div>
+            <div class="field full">
+              <label for="newOwnerPassword">Owner Password</label>
+              <input id="newOwnerPassword" type="password" required placeholder="Temporary password">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn ghost" type="button" id="cancelAgencyModalBtn">Cancel</button>
+          <button class="btn primary" type="submit">Create Agency</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Employee Modal -->
+  <div class="modal-backdrop" id="employeeModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3>Add Employee</h3>
+        <button class="modal-close" type="button" id="closeEmployeeModalBtn">×</button>
+      </div>
+      <form id="employeeForm">
+        <div class="modal-body">
+          <div class="form-grid">
+            <div class="field full">
+              <label for="newEmpName">Employee Name</label>
+              <input id="newEmpName" required placeholder="Full name">
+            </div>
+            <div class="field">
+              <label for="newEmpEmail">Employee Email</label>
+              <input id="newEmpEmail" type="email" required placeholder="emp@agency.com">
+            </div>
+            <div class="field">
+              <label for="newEmpRole">Role</label>
+              <select id="newEmpRole" required>
+                <option value="employee">Employee</option>
+                <option value="agency-owner">Agency Co-Owner</option>
+              </select>
+            </div>
+            <div class="field full">
+              <label for="newEmpPassword">Password</label>
+              <input id="newEmpPassword" type="password" required placeholder="Temporary password">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn ghost" type="button" id="cancelEmployeeModalBtn">Cancel</button>
+          <button class="btn primary" type="submit">Save Employee</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Bulk Upload Modal -->
+  <div class="modal-backdrop" id="bulkUploadModal">
+    <div class="modal-box" style="max-width:800px;">
+      <div class="modal-header">
+        <h3>Bulk Upload Customer Data</h3>
+        <button class="modal-close" type="button" id="closeBulkUploadModalBtn">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="upload-zone" id="uploadZone">
+          <span class="upload-icon">📁</span>
+          <p>Click to select or drag &amp; drop CSV file here</p>
+          <span>Supported formats: .csv, .txt (comma or tab delimited)</span>
+          <input type="file" id="csvFileInput" accept=".csv,.txt" style="display:none;">
+        </div>
+        <div class="upload-preview-container" id="uploadPreviewContainer">
+          <div class="upload-stats-bar">
+            <div class="upload-stat">Total Rows: <span id="totalRowsCount">0</span></div>
+            <div class="upload-stat valid">Valid: <span id="validRowsCount">0</span></div>
+            <div class="upload-stat invalid">Invalid: <span id="invalidRowsCount">0</span></div>
+            <div style="margin-left:auto;"><a href="#" id="downloadTemplateBtn" style="color:var(--brand);font-weight:700;">Download Template</a></div>
+          </div>
+          <div class="mapping-section">
+            <h4>Map Columns to Fields</h4>
+            <div class="mapping-grid" id="mappingGrid"></div>
+          </div>
+          <div class="preview-table-wrap">
+            <table class="preview-table">
+              <thead><tr id="previewTableHeader"></tr></thead>
+              <tbody id="previewTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn ghost" type="button" id="cancelBulkUploadModalBtn">Cancel</button>
+        <button class="btn primary" id="confirmUploadBtn" type="button" disabled>Confirm &amp; Import</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Export Modal -->
+  <div class="modal-backdrop" id="exportModal">
+    <div class="modal-box" style="max-width:560px;">
+      <div class="modal-header">
+        <h3>Export Records</h3>
+        <button class="modal-close" type="button" id="closeExportModalBtn">×</button>
+      </div>
+      <div class="modal-body">
+        <!-- Format tabs -->
+        <p style="margin:0 0 10px;font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;">Export format</p>
+        <div class="export-fmt-tabs">
+          <button class="export-fmt active" type="button" data-fmt="csv">CSV</button>
+          <button class="export-fmt" type="button" data-fmt="excel">Excel (.xlsx)</button>
+          <button class="export-fmt" type="button" data-fmt="pdf">PDF</button>
+        </div>
+        <!-- Column selection -->
+        <div class="export-col-header">
+          <span style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;">Select columns to export</span>
+          <button class="btn ghost" type="button" id="exportSelectAllBtn" style="min-height:30px;padding:0 10px;font-size:12px;">Select All</button>
+        </div>
+        <div class="export-col-grid" id="exportColumnList"></div>
+      </div>
+      <div class="modal-footer">
+        <span id="exportCountHint" style="font-size:13px;color:var(--muted);margin-right:auto;"></span>
+        <button class="btn ghost" type="button" id="cancelExportBtn">Cancel</button>
+        <button class="btn primary" type="button" id="doExportBtn">Export</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Third-party libraries loaded on demand -->
+  <script>
+    // Lazy-load SheetJS and jsPDF only when needed
+    function loadScript(src) {
+      return new Promise((resolve, reject) => {
+        if (document.querySelector(`script[src="${src}"]`)) { resolve(); return; }
+        const s = document.createElement('script');
+        s.src = src; s.onload = resolve; s.onerror = reject;
+        document.head.appendChild(s);
+      });
+    }
+    window._loadXLSX   = () => loadScript('https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js');
+    window._loadJsPDF  = () => Promise.all([
+      loadScript('https://unpkg.com/jspdf@2.5.1/dist/jspdf.umd.min.js'),
+      loadScript('https://unpkg.com/jspdf-autotable@3.5.31/dist/jspdf.plugin.autotable.min.js'),
+    ]);
+  </script>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/dashboard.js"></script>
+</body>
+</html>

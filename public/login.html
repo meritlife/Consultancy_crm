@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sign In — Consulting Services</title>
+  <link rel="stylesheet" href="/css/shared.css">
+  <link rel="stylesheet" href="/css/auth.css">
+</head>
+<body>
+  <a href="/" class="auth-logo">
+    <div class="auth-logo-mark">CS</div>
+    <div class="auth-logo-text">
+      <h2>Consulting Services</h2>
+      <p>Passport, Visa, PAN &amp; more</p>
+    </div>
+  </a>
+
+  <div class="auth-card">
+    <div class="auth-tabs">
+      <button id="tabLogin" class="active" type="button">Sign In</button>
+      <button id="tabRegister" type="button">Register</button>
+    </div>
+
+    <!-- Login form -->
+    <form id="loginForm" class="auth-form" autocomplete="on">
+      <div>
+        <h3>Welcome back</h3>
+        <p class="auth-desc">Sign in to your agency account.</p>
+      </div>
+      <div id="loginError" class="auth-error"></div>
+      <div class="field">
+        <label for="loginEmail">Email address</label>
+        <input id="loginEmail" type="email" name="email" placeholder="you@example.com" required autocomplete="email">
+      </div>
+      <div class="field">
+        <label for="loginPassword">Password</label>
+        <input id="loginPassword" type="password" name="password" placeholder="••••••••" required autocomplete="current-password">
+      </div>
+      <button class="btn primary" type="submit" id="loginBtn">Sign In</button>
+    </form>
+
+    <!-- Register form (hidden by default) -->
+    <form id="registerForm" class="auth-form d-none" autocomplete="on">
+      <div>
+        <h3>Create account</h3>
+        <p class="auth-desc">Set up a new agency account.</p>
+      </div>
+      <div id="registerError" class="auth-error"></div>
+      <div class="field">
+        <label for="regName">Full name</label>
+        <input id="regName" type="text" name="name" placeholder="Alice Sharma" required autocomplete="name">
+      </div>
+      <div class="field">
+        <label for="regEmail">Email address</label>
+        <input id="regEmail" type="email" name="email" placeholder="you@example.com" required autocomplete="email">
+      </div>
+      <div class="field">
+        <label for="regPassword">Password</label>
+        <input id="regPassword" type="password" name="password" placeholder="Min 6 characters" required autocomplete="new-password" minlength="6">
+      </div>
+      <div class="field">
+        <label for="regConfirm">Confirm password</label>
+        <input id="regConfirm" type="password" name="confirm" placeholder="Repeat password" required autocomplete="new-password" minlength="6">
+      </div>
+      <button class="btn primary" type="submit" id="registerBtn">Create Account</button>
+    </form>
+
+    <p class="auth-back"><a href="/">← Back to homepage</a></p>
+  </div>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/auth.js"></script>
+</body>
+</html>
