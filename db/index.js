@@ -1,27 +1,47 @@
-const Database = require('better-sqlite3');
+const { Pool } = require('pg');
+const fs   = require('fs');
 const path = require('path');
-const fs = require('fs');
 
-const dbPath = process.env.DB_PATH || path.join(__dirname, 'consulting.db');
-const schema = fs.readFileSync(path.join(__dirname, 'schema.sql'), 'utf8');
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+  max: 10,
+  idleTimeoutMillis: 30000,
+});
 
-const db = new Database(dbPath);
-db.pragma('journal_mode = WAL');
-db.pragma('foreign_keys = ON');
-db.exec(schema);
-
-// Additive migrations — safe to run on every start
-const migrations = [
-  `ALTER TABLE records ADD COLUMN appointment_center  TEXT NOT NULL DEFAULT ''`,
-  `ALTER TABLE records ADD COLUMN appointment_time    TEXT NOT NULL DEFAULT ''`,
-  `ALTER TABLE records ADD COLUMN stage               TEXT NOT NULL DEFAULT ''`,
-  `ALTER TABLE records ADD COLUMN commission_agent    TEXT NOT NULL DEFAULT ''`,
-  `ALTER TABLE records ADD COLUMN commission_amount   REAL NOT NULL DEFAULT 0`,
-  `ALTER TABLE records ADD COLUMN commission_paid     INTEGER NOT NULL DEFAULT 0`,
-  `ALTER TABLE records ADD COLUMN travel_date         TEXT NOT NULL DEFAULT ''`,
-];
-for (const sql of migrations) {
-  try { db.exec(sql); } catch { /* column already exists — skip */ }
+// Run schema on first connection
+let schemaRun = false;
+async function ensureSchema() {
+  if (schemaRun) return;
+  schemaRun = true;
+  const schema = fs.readFileSync(path.join(__dirname, 'schema.sql'), 'utf8');
+  await pool.query(schema);
 }
+
+pool.on('connect', () => ensureSchema().catch(console.error));
+
+// Convenience helpers
+const db = {
+  // Return first row or null
+  one: async (sql, params = []) => {
+    const res = await pool.query(sql, params);
+    return res.rows[0] || null;
+  },
+  // Return all rows
+  many: async (sql, params = []) => {
+    const res = await pool.query(sql, params);
+    return res.rows;
+  },
+  // Run write query, return first row if RETURNING clause present
+  run: async (sql, params = []) => {
+    const res = await pool.query(sql, params);
+    return res.rows[0] || null;
+  },
+  // Execute schema/DDL
+  exec: async (sql) => pool.query(sql),
+  // Get a client for transactions
+  connect: () => pool.connect(),
+  ensureSchema,
+};
 
 module.exports = db;

@@ -16,11 +16,11 @@ function computePaymentStatus(amount, received) {
   return 'Pending';
 }
 
-function writeLog(db, user, agencyId, agencyName, action, details) {
-  db.prepare(`
-    INSERT INTO audit_logs (agency_id, agency_name, user_id, user_name, user_role, action, details)
-    VALUES (?, ?, ?, ?, ?, ?, ?)
-  `).run(agencyId || null, agencyName || null, user.id, user.name, user.role, action, details || '');
+async function writeLog(db, user, agencyId, agencyName, action, details) {
+  await db.run(`
+    INSERT INTO audit_logs (agency_id, agency_name, user_id, user_name, user_role, action, details, created_at)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+  `, [agencyId || null, agencyName || null, user.id, user.name, user.role, action, details || '', new Date().toISOString()]);
 }
 
 module.exports = { toCamel, computePaymentStatus, writeLog };
